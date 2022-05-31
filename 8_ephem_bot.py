@@ -12,21 +12,25 @@
   бота отвечать, в каком созвездии сегодня находится планета.
 
 """
-from turtle import update
+
 import logging
 import settings
 import ephem
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import datetime
 
-logging.basicConfig(filename="bot.log", level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 ephem_built_in_planets = [name for _0, _1, name in ephem._libastro.builtin_planets()]
 
 def planet_constellation_now(text):
     planet_name = text.replace("/planet ","")
     if planet_name in ephem_built_in_planets:
-        return ephem.constellation(getattr(ephem, planet_name)(datetime.datetime.now()))[1]
+        planet = getattr(ephem, planet_name)
+        date = datetime.datetime.now()
+        planet_now = planet(date)
+        return ephem.constellation(planet_now)[1]
+    return None
 
 
 def help(update, context):
@@ -44,7 +48,8 @@ def talk_to_me(update, context):
     text = update.message.text
     logging.info(text)
     if text.split(" ")[0] == "/planet":
-        update.message.reply_text(f"Планета находится в созвездии {planet_constellation_now(text)}")
+        planet_constellation = planet_constellation_now(text)
+        update.message.reply_text(f"Планета находится в созвездии {planet_constellation}")
      
 def main():
     #Создаем бот и передаем ему ключ для авторизации
